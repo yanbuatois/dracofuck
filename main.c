@@ -35,14 +35,14 @@ void eval_char(char instruction, unsigned char first_pass)
       case '>':
         if (current_pos >= max_pos)
         {
-          max_pos = extends_buffer_right(&buffer, max_pos + 1, 1);
+          max_pos = extends_buffer_right(&buffer, max_pos + 1, 1)-1;
         }
         ++current_pos;
         break;
       case '<':
         if (current_pos <= 0)
         {
-          max_pos = extends_buffer_left(&buffer, max_pos + 1, 1);
+          max_pos = extends_buffer_left(&buffer, max_pos + 1, 1)-1;
         }
         else
         {
