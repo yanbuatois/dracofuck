@@ -102,7 +102,13 @@ unsigned int remove_boucle(struct boucle* boucle_data)
   unsigned char allocation_failed = (second_buffer == NULL || second_sizes == NULL || current_indexes == NULL);
 
   // If the new memory allocation failed, we keep the same memory zone, it can avoid program crashes at the end, but it will probably be problematic at the next boucle or buffer allocation.
-  if (!allocation_failed)
+  if (allocation_failed)
+  {
+    free(second_buffer);
+    free(second_sizes);
+    free(current_indexes);
+  }
+  else
   {
     for (unsigned int i = 0; i < new_size; ++i)
     {
