@@ -11,7 +11,7 @@ unsigned char jump_code = 0; // If we are in a boucle with a pointer pointing 0.
 struct boucle boucle_data;
 struct boucle current_boucle;
 
-void eval_char(char instruction, unsigned char first_pass)
+int eval_char(char instruction, unsigned char first_pass)
 {
   unsigned int value;
   // printf("%c\n", instruction);
@@ -60,6 +60,10 @@ void eval_char(char instruction, unsigned char first_pass)
         }
         break;
       case ']':
+        if (!boucle_data.levels)
+        {
+          return 1;
+        }
         if (buffer[current_pos])
         {
           copy_boucle_last_level(&boucle_data, &current_boucle);
@@ -74,16 +78,18 @@ void eval_char(char instruction, unsigned char first_pass)
         buffer[current_pos] = value;
         break;
       default:
-        return;
+        return 0;
     }
   }
   else if(instruction == ']')
   {
     jump_code = 0;
   }
+
+  return 0;
 }
 
-void readFromFile(FILE* file)
+int readFromFile(FILE* file)
 {
   buffer = malloc((max_pos + 1) * sizeof(int));
   buffer[0] = 0;
@@ -96,18 +102,29 @@ void readFromFile(FILE* file)
 
   while((i = fgetc(file)) != EOF)
   {
-    eval_char(i, 1);
+    int status = eval_char(i, 1);
+
+    if (status)
+    {
+      return status;
+    }
     
     while (current_boucle.levels)
     {
       char instruction;
       next_boucle_character(&current_boucle, &instruction);
-      eval_char(instruction, 0);
+      status = eval_char(instruction, 0);
+      if (status)
+      {
+        return status;
+      }
     }
   }
 
   printf("\n");
   free(buffer);
+
+  return 0;
 }
 
 int main(int argc, char** argv)
@@ -120,7 +137,22 @@ int main(int argc, char** argv)
   for (int i = 1; i < argc; ++i)
   {
     FILE* file = fopen(argv[i], "r");
-    readFromFile(file);
+    int status = (file == NULL) ? -1 : readFromFile(file);
+    if (status)
+    {
+      switch (status)
+      {
+        case -1:
+          printf("Unable to open file %s (code: %d).\n", argv[i], status);
+          break;
+        case 1:
+          printf("Syntax error: Closing brace without corresponding opening brace (%s) (code: %d).\n", argv[i], status);
+          break;
+        default:
+          printf("Unknown error (%s) (code: %d).\n", argv[i], status);
+          break;
+      }
+    }
   }
 
   return 0;
