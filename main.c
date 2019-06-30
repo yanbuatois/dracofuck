@@ -54,18 +54,20 @@ int eval_char(char instruction, unsigned char first_pass)
         current_elt = temp_elt;
         break;
       case '^':
-        current_elt = extends_buffer_up(current_elt);
-        if (current_elt == NULL)
+        temp_elt = extends_buffer_up(current_elt);
+        if (temp_elt == NULL)
         {
           return 2;
         }
+        current_elt = temp_elt;
         break;
       case 'v':
-        current_elt = extends_buffer_down(current_elt);
-        if (current_elt == NULL)
+        temp_elt = extends_buffer_down(current_elt);
+        if (temp_elt == NULL)
         {
           return 2;
         }
+        current_elt = temp_elt;
         break;
       case '[':
         if ((*current_elt).value)
@@ -100,6 +102,9 @@ int eval_char(char instruction, unsigned char first_pass)
       case ',':
         value = getchar();
         (*current_elt).value = value;
+        break;
+      case 'x':
+        return -2;
         break;
       default:
         return 0;
@@ -169,6 +174,9 @@ int main(int argc, char** argv)
     {
       switch (status)
       {
+        case -2:
+          // Do nothing, the program was stopped by himself.
+          break;
         case -1:
           printf("Unable to open file %s (code: %d).\n", argv[i], status);
           break;
