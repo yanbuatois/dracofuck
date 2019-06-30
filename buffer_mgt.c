@@ -1,57 +1,65 @@
 #include "buffer_mgt.h"
 
-unsigned int extends_buffer_right(int** buffer_ptr, unsigned int size, unsigned int extension)
+struct element* extends_buffer_right(struct element* buffer_element)
 {
-  unsigned int new_size = size + extension;
-  int *second_buffer = malloc(new_size * sizeof(int));
-
-  if (second_buffer == NULL)
+  if ((*buffer_element).right == NULL)
   {
-    new_size = 0;
+    (*buffer_element).right = create_element(buffer_element, NULL); 
   }
 
-  for (unsigned int i = 0; i < new_size; ++i)
-  {
-    if (i < size)
-    {
-      second_buffer[i] = (*buffer_ptr)[i];
-    }
-    else
-    {
-      second_buffer[i] = 0;
-    }
-  }
-
-  free(*buffer_ptr);
-  *buffer_ptr = second_buffer;
-  return new_size;
+  return (*buffer_element).right;
 }
 
-unsigned int extends_buffer_left(int** buffer_ptr, unsigned int size, unsigned int extension)
+struct element* extends_buffer_left(struct element* buffer_element)
 {
-  unsigned int new_size = size + extension;
-  int *second_buffer = malloc(new_size * sizeof(int));
-
-  if (second_buffer == NULL)
+  if ((*buffer_element).left == NULL)
   {
-    new_size = 0;
+    (*buffer_element).left = create_element(NULL, buffer_element);
   }
 
-  for (unsigned int i = 0; i < new_size; ++i)
+  return (*buffer_element).left;
+}
+
+struct element* create_element(struct element* left, struct element* right)
+{
+  struct element* new_element = malloc(sizeof(struct element));
+
+  (*new_element).left = left;
+  (*new_element).right = right;
+  (*new_element).value = 0;
+
+  return new_element;
+}
+
+void delete_element(struct element* buffer_elt)
+{
+  if ((*buffer_elt).left != NULL)
   {
-    if (i < extension)
-    {
-      second_buffer[i] = 0;
-    }
-    else
-    {
-      second_buffer[i] = (*buffer_ptr)[i - extension];
-    }
+    (*(*buffer_elt).left).right = NULL;
   }
-  
-  free(*buffer_ptr);
-  *buffer_ptr = second_buffer;
-  return new_size;
+
+  if ((*buffer_elt).right != NULL)
+  {
+    (*(*buffer_elt).right).left = NULL;
+  }
+
+  free(buffer_elt);
+}
+
+void delete_buffer(struct element* buffer_elt)
+{
+  struct element* left = (*buffer_elt).left;
+  struct element* right = (*buffer_elt).right;
+
+  delete_element(buffer_elt);
+  if (left != NULL)
+  {
+    delete_buffer(left);
+  }
+  if (right != NULL)
+  {
+    delete_buffer(right);
+  }
 }
 
 unsigned int add_boucle(struct boucle* boucle_data)

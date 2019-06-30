@@ -2,10 +2,10 @@
 #include <stdlib.h>
 
 #include "buffer_mgt.h"
+#include "struct_buffer_element.h"
+#include "struct_boucle.h"
 
-int* buffer; // Brainfuck row
-unsigned int current_pos = 0; // Current position in the array
-unsigned int max_pos = 0; // Maximum position in the array
+struct element* current_elt;
 
 unsigned char jump_code = 0; // If we are in a boucle with a pointer pointing 0.
 struct boucle boucle_data;
@@ -28,50 +28,26 @@ int eval_char(char instruction, unsigned char first_pass)
     switch (instruction)
     {
       case '+':
-        ++(buffer[current_pos]);
+        ++(*current_elt).value;
         break;
       case '-':
-        --(buffer[current_pos]);
+        --(*current_elt).value;
         break;
       case '.':
-        printf("%c", buffer[current_pos]);
+        printf("%c", (*current_elt).value);
         break;
       case '>':
-        if (current_pos >= max_pos)
+        current_elt = extends_buffer_right(current_elt);
+        if (current_elt == NULL)
         {
-          new_size = extends_buffer_right(&buffer, max_pos + 1, 1);
-          if (new_size)
-          {
-            max_pos = new_size - 1;
-          }
-          else
-          {
-            return 2;
-          }
-          
+          return 2;
         }
-        ++current_pos;
         break;
       case '<':
-        if (current_pos <= 0)
-        {
-          new_size = extends_buffer_left(&buffer, max_pos + 1, 1)-1;
-          if (new_size)
-          {
-            max_pos = new_size - 1;
-          }
-          else
-          {
-            return 2;
-          }
-        }
-        else
-        {
-          --current_pos;
-        }
+        current_elt = extends_buffer_left(current_elt);
         break;
       case '[':
-        if (buffer[current_pos])
+        if ((*current_elt).value)
         {
           if (!add_boucle(&boucle_data))
           {
@@ -88,7 +64,7 @@ int eval_char(char instruction, unsigned char first_pass)
         {
           return 1;
         }
-        if (buffer[current_pos])
+        if ((*current_elt).value)
         {
           if (!copy_boucle_last_level(&boucle_data, &current_boucle))
           {
@@ -102,7 +78,7 @@ int eval_char(char instruction, unsigned char first_pass)
         break;
       case ',':
         value = getchar();
-        buffer[current_pos] = value;
+        (*current_elt).value = value;
         break;
       default:
         return 0;
@@ -118,14 +94,11 @@ int eval_char(char instruction, unsigned char first_pass)
 
 int readFromFile(FILE* file)
 {
-  buffer = malloc((max_pos + 1) * sizeof(int));
-  if (buffer == NULL)
+  current_elt = create_element(NULL, NULL);
+  if (current_elt == NULL)
   {
     return 2;
   }
-  buffer[0] = 0;
-  current_pos = 0;
-  max_pos = 0;
   jump_code = 0;
   clear_boucle(&boucle_data);
   clear_boucle(&current_boucle);
@@ -168,7 +141,7 @@ int main(int argc, char** argv)
   {
     FILE* file = fopen(argv[i], "r");
     int status = (file == NULL) ? -1 : readFromFile(file);
-    free(buffer);
+    delete_buffer(current_elt);
     clear_boucle(&boucle_data);
     clear_boucle(&current_boucle);
     if (status)
