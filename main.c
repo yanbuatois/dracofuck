@@ -14,10 +14,14 @@ struct boucle current_boucle;
 int eval_char(char instruction, unsigned char first_pass)
 {
   unsigned int value;
+  unsigned int new_size; // New size of the buffer
   // printf("%c\n", instruction);
   if (first_pass)
   {
-    add_boucle_instruction(&boucle_data, instruction);
+    if(!add_boucle_instruction(&boucle_data, instruction))
+    {
+      return 5;
+    }
   }
   if (!jump_code)
   {
@@ -35,14 +39,31 @@ int eval_char(char instruction, unsigned char first_pass)
       case '>':
         if (current_pos >= max_pos)
         {
-          max_pos = extends_buffer_right(&buffer, max_pos + 1, 1)-1;
+          new_size = extends_buffer_right(&buffer, max_pos + 1, 1);
+          if (new_size)
+          {
+            max_pos = new_size - 1;
+          }
+          else
+          {
+            return 2;
+          }
+          
         }
         ++current_pos;
         break;
       case '<':
         if (current_pos <= 0)
         {
-          max_pos = extends_buffer_left(&buffer, max_pos + 1, 1)-1;
+          new_size = extends_buffer_left(&buffer, max_pos + 1, 1)-1;
+          if (new_size)
+          {
+            max_pos = new_size - 1;
+          }
+          else
+          {
+            return 2;
+          }
         }
         else
         {
@@ -52,7 +73,10 @@ int eval_char(char instruction, unsigned char first_pass)
       case '[':
         if (buffer[current_pos])
         {
-          add_boucle(&boucle_data);
+          if (!add_boucle(&boucle_data))
+          {
+            return 3;
+          }
         }
         else
         {
@@ -66,7 +90,10 @@ int eval_char(char instruction, unsigned char first_pass)
         }
         if (buffer[current_pos])
         {
-          copy_boucle_last_level(&boucle_data, &current_boucle);
+          if (!copy_boucle_last_level(&boucle_data, &current_boucle))
+          {
+            return 4;
+          }
         }
         else
         {
@@ -92,6 +119,10 @@ int eval_char(char instruction, unsigned char first_pass)
 int readFromFile(FILE* file)
 {
   buffer = malloc((max_pos + 1) * sizeof(int));
+  if (buffer == NULL)
+  {
+    return 2;
+  }
   buffer[0] = 0;
   current_pos = 0;
   max_pos = 0;
@@ -122,7 +153,6 @@ int readFromFile(FILE* file)
   }
 
   printf("\n");
-  free(buffer);
 
   return 0;
 }
@@ -138,6 +168,9 @@ int main(int argc, char** argv)
   {
     FILE* file = fopen(argv[i], "r");
     int status = (file == NULL) ? -1 : readFromFile(file);
+    free(buffer);
+    clear_boucle(&boucle_data);
+    clear_boucle(&current_boucle);
     if (status)
     {
       switch (status)
@@ -147,6 +180,14 @@ int main(int argc, char** argv)
           break;
         case 1:
           printf("Syntax error: Closing brace without corresponding opening brace (%s) (code: %d).\n", argv[i], status);
+          break;
+        case 2:
+          printf("Memory error: Failed to allocate enough Memory for the buffer (%s) (code: %d).\n", argv[i], status);
+          break;
+        case 3:
+        case 4:
+        case 5:
+          printf("Memory error: Failed to allocate enough Memory for the loop buffer (%s) (code: %d).\n", argv[i], status);
           break;
         default:
           printf("Unknown error (%s) (code: %d).\n", argv[i], status);

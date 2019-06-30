@@ -5,6 +5,11 @@ unsigned int extends_buffer_right(int** buffer_ptr, unsigned int size, unsigned 
   unsigned int new_size = size + extension;
   int *second_buffer = malloc(new_size * sizeof(int));
 
+  if (second_buffer == NULL)
+  {
+    new_size = 0;
+  }
+
   for (unsigned int i = 0; i < new_size; ++i)
   {
     if (i < size)
@@ -26,6 +31,11 @@ unsigned int extends_buffer_left(int** buffer_ptr, unsigned int size, unsigned i
 {
   unsigned int new_size = size + extension;
   int *second_buffer = malloc(new_size * sizeof(int));
+
+  if (second_buffer == NULL)
+  {
+    new_size = 0;
+  }
 
   for (unsigned int i = 0; i < new_size; ++i)
   {
@@ -50,6 +60,11 @@ unsigned int add_boucle(struct boucle* boucle_data)
   char** second_buffer = malloc(new_size * sizeof(char*));
   unsigned int* second_sizes = malloc(new_size * sizeof(unsigned int));
   unsigned int* current_indexes = malloc(new_size * sizeof(unsigned int)); 
+
+  if (second_buffer == NULL || second_sizes == NULL || current_indexes == NULL)
+  {
+    new_size = 0;
+  }
 
   for (unsigned int i = 0; i < new_size; ++i)
   {
@@ -84,34 +99,48 @@ unsigned int remove_boucle(struct boucle* boucle_data)
   char** second_buffer = malloc(new_size * sizeof(char*));
   unsigned int* second_sizes = malloc(new_size * sizeof(unsigned int));
   unsigned int* current_indexes = malloc(new_size * sizeof(unsigned int));
+  unsigned char allocation_failed = (second_buffer == NULL || second_sizes == NULL || current_indexes == NULL);
 
-  for (unsigned int i = 0; i < new_size; ++i)
+  // If the new memory allocation failed, we keep the same memory zone, it can avoid program crashes at the end, but it will probably be problematic at the next boucle or buffer allocation.
+  if (!allocation_failed)
   {
-    second_buffer[i] = (*boucle_data).buffer[i];
-    second_sizes[i] = (*boucle_data).sizes[i];
-    current_indexes[i] = (*boucle_data).current_indexes[i];
+    for (unsigned int i = 0; i < new_size; ++i)
+    {
+      second_buffer[i] = (*boucle_data).buffer[i];
+      second_sizes[i] = (*boucle_data).sizes[i];
+      current_indexes[i] = (*boucle_data).current_indexes[i];
+    }
   }
 
   // We free the pointers of the old level, no more used.
   free((*boucle_data).buffer[new_size]);
 
-  free((*boucle_data).buffer);
-  free((*boucle_data).sizes);
-  free((*boucle_data).current_indexes);
-  (*boucle_data).buffer = second_buffer;
-  (*boucle_data).sizes = second_sizes;
+  if (!allocation_failed)
+  {
+    free((*boucle_data).buffer);
+    free((*boucle_data).sizes);
+    free((*boucle_data).current_indexes);
+    (*boucle_data).buffer = second_buffer;
+    (*boucle_data).sizes = second_sizes;
+    (*boucle_data).current_indexes = current_indexes;
+  }
+
   (*boucle_data).levels = new_size;
-  (*boucle_data).current_indexes = current_indexes;
   return new_size;
 }
 
-void add_boucle_instruction(struct boucle* boucle_data, char to_add)
+unsigned int add_boucle_instruction(struct boucle* boucle_data, char to_add)
 {
   // We add the instruction on each boucle stack.
   for (unsigned int i = 0; i < (*boucle_data).levels; ++i)
   {
     unsigned int new_size = (*boucle_data).sizes[i] + 1;
     char* new_buffer = malloc(new_size * sizeof(char));
+
+    if (new_buffer == NULL)
+    {
+      new_size = 0;
+    }
 
     for (unsigned int j = 0; j < new_size; ++j)
     {
@@ -129,7 +158,14 @@ void add_boucle_instruction(struct boucle* boucle_data, char to_add)
     free((*boucle_data).buffer[i]);
     (*boucle_data).buffer[i] = new_buffer;
     (*boucle_data).sizes[i] = new_size;
+    
+    if (new_size == 0)
+    {
+      return 0;
+    }
   }
+
+  return 1;
 }
 
 unsigned int last_boucle_stack (struct boucle* boucle_data, char** output_stack_ptr, unsigned int* output_size)
@@ -145,7 +181,7 @@ unsigned int last_boucle_stack (struct boucle* boucle_data, char** output_stack_
   return 0;
 }
 
-void copy_boucle_last_level(struct boucle* boucle_data, struct boucle* current_boucle)
+unsigned int copy_boucle_last_level(struct boucle* boucle_data, struct boucle* current_boucle)
 {
   char* output_stack_ptr;
   unsigned int output_size;
@@ -154,6 +190,11 @@ void copy_boucle_last_level(struct boucle* boucle_data, struct boucle* current_b
   add_boucle(current_boucle);
 
   char* new_buffer = malloc(output_size * sizeof(char));
+
+  if (new_buffer == NULL)
+  {
+    output_size = 0;
+  }
 
   for (int i = 0; i < output_size; ++i)
   {
@@ -165,6 +206,8 @@ void copy_boucle_last_level(struct boucle* boucle_data, struct boucle* current_b
   free((*current_boucle).buffer[new_size]);
   (*current_boucle).buffer[new_size] = new_buffer;
   (*current_boucle).sizes[new_size] = output_size;
+
+  return output_size;
 }
 
 void next_boucle_character(struct boucle* current_boucle, char* character)
