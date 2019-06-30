@@ -45,6 +45,10 @@ int eval_char(char instruction, unsigned char first_pass)
         break;
       case '<':
         current_elt = extends_buffer_left(current_elt);
+        if (current_elt == NULL)
+        {
+          return 2;
+        }
         break;
       case '^':
         // current_el
