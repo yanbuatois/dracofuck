@@ -15,6 +15,7 @@ int eval_char(char instruction, unsigned char first_pass)
 {
   unsigned int value;
   unsigned int new_size; // New size of the buffer
+  struct element* temp_elt;
   // printf("%c\n", instruction);
   if (first_pass)
   {
@@ -37,18 +38,20 @@ int eval_char(char instruction, unsigned char first_pass)
         printf("%c", (*current_elt).value);
         break;
       case '>':
-        current_elt = extends_buffer_right(current_elt);
-        if (current_elt == NULL)
+        temp_elt = extends_buffer_right(current_elt);
+        if (temp_elt == NULL)
         {
           return 2;
         }
+        current_elt = temp_elt;
         break;
       case '<':
-        current_elt = extends_buffer_left(current_elt);
-        if (current_elt == NULL)
+        temp_elt = extends_buffer_left(current_elt);
+        if (temp_elt == NULL)
         {
           return 2;
         }
+        current_elt = temp_elt;
         break;
       case '^':
         current_elt = extends_buffer_up(current_elt);
