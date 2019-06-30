@@ -5,6 +5,8 @@ struct element {
   int value;
   struct element* left;
   struct element* right;
+  struct element* up;
+  struct element* down;
 };
 
 #endif

@@ -4,7 +4,18 @@ struct element* extends_buffer_right(struct element* buffer_element)
 {
   if ((*buffer_element).right == NULL)
   {
-    (*buffer_element).right = create_element(buffer_element, NULL); 
+    struct element* future_up = (*buffer_element).up;
+    if (future_up != NULL)
+    {
+      future_up = (*future_up).right;
+    }
+
+    struct element* future_down = (*buffer_element).down;
+    if (future_down != NULL)
+    {
+      future_down = (*future_down).right;
+    }
+    (*buffer_element).right = create_element(buffer_element, NULL, future_up, future_down); 
   }
 
   return (*buffer_element).right;
@@ -14,18 +25,76 @@ struct element* extends_buffer_left(struct element* buffer_element)
 {
   if ((*buffer_element).left == NULL)
   {
-    (*buffer_element).left = create_element(NULL, buffer_element);
+    struct element* future_up = (*buffer_element).up;
+    if (future_up != NULL)
+    {
+      future_up = (*future_up).left;
+    }
+
+    struct element* future_down = (*buffer_element).down;
+    if (future_down != NULL)
+    {
+      future_down = (*future_down).left;
+    }
+
+    (*buffer_element).left = create_element(NULL, buffer_element, future_up, future_down);
   }
 
   return (*buffer_element).left;
 }
 
-struct element* create_element(struct element* left, struct element* right)
+struct element* extends_buffer_up(struct element* buffer_element)
+{
+  if ((*buffer_element).up == NULL)
+  {
+    struct element* future_right = (*buffer_element).right;
+    if (future_right != NULL)
+    {
+      future_right = (*future_right).up;
+    }
+    
+    struct element* future_left = (*buffer_element).left;
+    if (future_left != NULL)
+    {
+      future_left = (*future_left).up;
+    }
+
+    (*buffer_element).up = create_element(future_left, future_right, NULL, buffer_element);
+  }
+
+  return (*buffer_element).up;
+}
+
+struct element* extends_buffer_down(struct element* buffer_element)
+{
+  if ((*buffer_element).down == NULL)
+  {
+    struct element* future_right = (*buffer_element).right;
+    if (future_right != NULL)
+    {
+      future_right = (*future_right).down;
+    }
+
+    struct element* future_left = (*buffer_element).left;
+    if (future_left != NULL)
+    {
+      future_left = (*future_left).down;
+    }
+
+    (*buffer_element).down = create_element(future_left, future_right, buffer_element, NULL);
+  }
+
+  return (*buffer_element).down;
+}
+
+struct element* create_element(struct element* left, struct element* right, struct element* up, struct element* down)
 {
   struct element* new_element = malloc(sizeof(struct element));
 
   (*new_element).left = left;
   (*new_element).right = right;
+  (*new_element).up = up;
+  (*new_element).down = down;
   (*new_element).value = 0;
 
   return new_element;
@@ -43,22 +112,59 @@ void delete_element(struct element* buffer_elt)
     (*(*buffer_elt).right).left = NULL;
   }
 
+  if ((*buffer_elt).up != NULL)
+  {
+    (*(*buffer_elt).up).down = NULL;
+  }
+
+  if ((*buffer_elt).down != NULL)
+  {
+    (*(*buffer_elt).down).up = NULL;
+  }
+
   free(buffer_elt);
 }
 
 void delete_buffer(struct element* buffer_elt)
 {
-  struct element* left = (*buffer_elt).left;
-  struct element* right = (*buffer_elt).right;
+  // struct element* left = (*buffer_elt).left;
+  // struct element* right = (*buffer_elt).right;
+  // struct element* up = (*buffer_elt).up;
+  // struct element* down = (*buffer_elt).down;
 
-  delete_element(buffer_elt);
-  if (left != NULL)
+  // delete_element(buffer_elt);
+  // if (left != NULL)
+  // {
+  //   delete_buffer(left);
+  // }
+  // if (right != NULL)
+  // {
+  //   delete_buffer(right);
+  // }
+
+  if ((*buffer_elt).left)
   {
-    delete_buffer(left);
+    delete_buffer((*buffer_elt).left);
   }
-  if (right != NULL)
+  else
   {
-    delete_buffer(right);
+    struct element* right = (*buffer_elt).right;
+    struct element* up = (*buffer_elt).up;
+    struct element* down = (*buffer_elt).down;
+
+    delete_element(buffer_elt);
+    if (up)
+    {
+      delete_buffer(up);
+    }
+    if (down)
+    {
+      delete_buffer(down);
+    }
+    if (right)
+    {
+      delete_buffer(right);
+    }
   }
 }
 

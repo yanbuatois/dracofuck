@@ -9,8 +9,10 @@
 
 struct element* extends_buffer_right(struct element* buffer_elt);
 struct element* extends_buffer_left(struct element* buffer_elt);
+struct element* extends_buffer_up(struct element* buffer_elt);
+struct element* extends_buffer_down(struct element* buffer_elt);
 
-struct element* create_element(struct element* left, struct element* right);
+struct element* create_element(struct element* left, struct element* right, struct element* up, struct element* down);
 
 void delete_element(struct element* buffer_elt);
 void delete_buffer(struct element* buffer_elt);

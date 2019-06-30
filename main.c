@@ -46,6 +46,9 @@ int eval_char(char instruction, unsigned char first_pass)
       case '<':
         current_elt = extends_buffer_left(current_elt);
         break;
+      case '^':
+        // current_el
+        break;
       case '[':
         if ((*current_elt).value)
         {
@@ -94,7 +97,7 @@ int eval_char(char instruction, unsigned char first_pass)
 
 int readFromFile(FILE* file)
 {
-  current_elt = create_element(NULL, NULL);
+  current_elt = create_element(NULL, NULL, NULL, NULL);
   if (current_elt == NULL)
   {
     return 2;
