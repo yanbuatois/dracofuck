@@ -5,9 +5,15 @@
 #include <stdio.h>
 
 #include "struct_boucle.h"
+#include "struct_buffer_element.h"
 
-unsigned int extends_buffer_right(int** buffer_ptr, unsigned int size, unsigned int extension);
-unsigned int extends_buffer_left(int** buffer_ptr, unsigned int size, unsigned int extension);
+struct element* extends_buffer_right(struct element* buffer_elt);
+struct element* extends_buffer_left(struct element* buffer_elt);
+
+struct element* create_element(struct element* left, struct element* right);
+
+void delete_element(struct element* buffer_elt);
+void delete_buffer(struct element* buffer_elt);
 
 unsigned int add_boucle(struct boucle* boucle_data);
 unsigned int remove_boucle(struct boucle* boucle_data);
